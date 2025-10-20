@@ -1,0 +1,1829 @@
+{
+  "Description": "Kavun - Anki Image Generator (Test)",
+  "Outputs": {
+    "APILambdaArn": {
+      "Description": "API Lambda Function ARN",
+      "Value": {
+        "Fn::GetAtt": [
+          "KavunAPILambdaB0BC83AD",
+          "Arn"
+        ]
+      }
+    },
+    "CloudFrontURL": {
+      "Description": "CloudFront URL for images",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "KavunCloudFront22FA320C",
+                "DomainName"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "DynamoDBTable": {
+      "Description": "DynamoDB table name",
+      "Value": {
+        "Ref": "KavunWordsTableC0AA7B80"
+      }
+    },
+    "ImageLambdaArn": {
+      "Description": "Image Lambda Function ARN",
+      "Value": {
+        "Fn::GetAtt": [
+          "KavunImageLambdaAA5FCFB6",
+          "Arn"
+        ]
+      }
+    },
+    "PromptLambdaArn": {
+      "Description": "Prompt Lambda Function ARN",
+      "Value": {
+        "Fn::GetAtt": [
+          "KavunPromptLambdaD850A442",
+          "Arn"
+        ]
+      }
+    },
+    "S3Bucket": {
+      "Description": "S3 bucket for images",
+      "Value": {
+        "Ref": "KavunImagesBucketABC7F95F"
+      }
+    },
+    "SecretsManager": {
+      "Description": "Secrets Manager secret name",
+      "Value": {
+        "Fn::Join": [
+          "-",
+          [
+            {
+              "Fn::Select": [
+                0,
+                {
+                  "Fn::Split": [
+                    "-",
+                    {
+                      "Fn::Select": [
+                        6,
+                        {
+                          "Fn::Split": [
+                            ":",
+                            {
+                              "Ref": "KavunAPISecrets6763772E"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "Fn::Select": [
+                1,
+                {
+                  "Fn::Split": [
+                    "-",
+                    {
+                      "Fn::Select": [
+                        6,
+                        {
+                          "Fn::Split": [
+                            ":",
+                            {
+                              "Ref": "KavunAPISecrets6763772E"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "StateMachineArn": {
+      "Description": "Step Functions State Machine ARN",
+      "Value": {
+        "Ref": "KavunWorkflow0C85EDA9"
+      }
+    },
+    "StatusLambdaArn": {
+      "Description": "Status Lambda Function ARN",
+      "Value": {
+        "Fn::GetAtt": [
+          "KavunStatusLambdaEF5079AB",
+          "Arn"
+        ]
+      }
+    }
+  },
+  "Parameters": {},
+  "Resources": {
+    "APILambdaErrorRate57553A08": {
+      "Properties": {
+        "AlarmDescription": "API Lambda error rate too high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "KavunAPILambdaB0BC83AD"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 10
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "APILambdaLogGroup4AE92923": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "KavunAPILambdaB0BC83AD"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "DynamoDBReadCapacityB22E9DC1": {
+      "Properties": {
+        "AlarmDescription": "DynamoDB read capacity usage high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "TableName",
+            "Value": {
+              "Ref": "KavunWordsTableC0AA7B80"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "ConsumedReadCapacityUnits",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 1000
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "DynamoDBWriteCapacityC27B91B6": {
+      "Properties": {
+        "AlarmDescription": "DynamoDB write capacity usage high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "TableName",
+            "Value": {
+              "Ref": "KavunWordsTableC0AA7B80"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "ConsumedWriteCapacityUnits",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 1000
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "ImageLambdaDuration7ADCA895": {
+      "Properties": {
+        "AlarmDescription": "Image Lambda duration too high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "KavunImageLambdaAA5FCFB6"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Duration",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Average",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 840000
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "ImageLambdaErrorRate4FC17601": {
+      "Properties": {
+        "AlarmDescription": "Image Lambda error rate too high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "KavunImageLambdaAA5FCFB6"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 5
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "ImageLambdaLogGroupD5B767DD": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "KavunImageLambdaAA5FCFB6"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "KavunAPILambdaB0BC83AD": {
+      "DependsOn": [
+        "KavunLambdaRoleDefaultPolicy7D45C1C1",
+        "KavunLambdaRole62AEA3C2"
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "84008b6605b86f3388702a75afc1272e7ce5213a56d35f8b5a2f1a4e9d6ff7a3.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Ref": "KavunImagesBucketABC7F95F"
+            },
+            "CLOUDFRONT_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "KavunCloudFront22FA320C",
+                      "DomainName"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "DLQ_TOPIC_ARN": {
+              "Ref": "KavunDeadLetterQueueE09F750F"
+            },
+            "STATE_MACHINE_ARN": "arn:aws:states:us-east-1:123456789012:stateMachine:kavun-workflow",
+            "TABLE_NAME": {
+              "Ref": "KavunWordsTableC0AA7B80"
+            }
+          }
+        },
+        "FunctionName": "kavun-api-handler",
+        "Handler": "handler.handler",
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "KavunLambdaRole62AEA3C2",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.12",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Timeout": 300,
+        "TracingConfig": {
+          "Mode": "Active"
+        }
+      },
+      "Type": "AWS::Lambda::Function"
+    },
+    "KavunAPISecrets6763772E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "Description": "API keys for OpenAI and Nano Banana",
+        "GenerateSecretString": {
+          "ExcludeCharacters": " %+~`#$&*()|[]{}:;<>?!'/\"\\",
+          "GenerateStringKey": "password",
+          "SecretStringTemplate": "{\"openai_key\":\"\",\"nano_banana_key\":\"\"}"
+        },
+        "Name": "kavun/api-keys",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete"
+    },
+    "KavunAccessLogsBucket90737732": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "BucketName": "kavun-access-logs-123456789012",
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "KavunAlertsTopic98D9EB8E": {
+      "Properties": {
+        "DisplayName": "Kavun Alerts",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "TopicName": "kavun-alerts"
+      },
+      "Type": "AWS::SNS::Topic"
+    },
+    "KavunCloudFront22FA320C": {
+      "Properties": {
+        "DistributionConfig": {
+          "Comment": "Kavun Images CDN",
+          "DefaultCacheBehavior": {
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "TargetOriginId": "kavuntestKavunCloudFrontOrigin15086D668",
+            "ViewerProtocolPolicy": "redirect-to-https"
+          },
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "KavunImagesBucketABC7F95F",
+                  "RegionalDomainName"
+                ]
+              },
+              "Id": "kavuntestKavunCloudFrontOrigin15086D668",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "origin-access-identity/cloudfront/",
+                      {
+                        "Ref": "KavunCloudFrontOrigin1S3Origin0E1F277D"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "PriceClass": "PriceClass_100"
+        },
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::CloudFront::Distribution"
+    },
+    "KavunCloudFrontOrigin1S3Origin0E1F277D": {
+      "Properties": {
+        "CloudFrontOriginAccessIdentityConfig": {
+          "Comment": "Identity for Kavun Images"
+        }
+      },
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+    },
+    "KavunDashboardA3B7775D": {
+      "Properties": {
+        "DashboardBody": "{\"widgets\":[]}",
+        "DashboardName": "Kavun-Monitoring"
+      },
+      "Type": "AWS::CloudWatch::Dashboard"
+    },
+    "KavunDeadLetterQueueE09F750F": {
+      "Properties": {
+        "DisplayName": "Kavun Dead Letter Queue",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "TopicName": "kavun-dlq"
+      },
+      "Type": "AWS::SNS::Topic"
+    },
+    "KavunImageLambdaAA5FCFB6": {
+      "DependsOn": [
+        "KavunLambdaRoleDefaultPolicy7D45C1C1",
+        "KavunLambdaRole62AEA3C2"
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "6061a0c5533461908aff630b32220c8e98ff0faa8da5ff62bb85ebe685648237.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Ref": "KavunImagesBucketABC7F95F"
+            },
+            "CLOUDFRONT_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "KavunCloudFront22FA320C",
+                      "DomainName"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "DLQ_TOPIC_ARN": {
+              "Ref": "KavunDeadLetterQueueE09F750F"
+            },
+            "SECRET_ARN": {
+              "Ref": "KavunAPISecrets6763772E"
+            },
+            "TABLE_NAME": {
+              "Ref": "KavunWordsTableC0AA7B80"
+            }
+          }
+        },
+        "FunctionName": "kavun-image-generator",
+        "Handler": "handler.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "KavunLambdaRole62AEA3C2",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.12",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Timeout": 900,
+        "TracingConfig": {
+          "Mode": "Active"
+        }
+      },
+      "Type": "AWS::Lambda::Function"
+    },
+    "KavunImagesBucketABC7F95F": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "BucketName": "kavun-images-123456789012",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "ImageLifecycle",
+              "Status": "Enabled",
+              "Transitions": [
+                {
+                  "StorageClass": "STANDARD_IA",
+                  "TransitionInDays": 30
+                },
+                {
+                  "StorageClass": "GLACIER",
+                  "TransitionInDays": 90
+                }
+              ]
+            },
+            {
+              "Id": "DeleteOldVersions",
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 30
+              },
+              "Status": "Enabled"
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        }
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "KavunImagesBucketPolicyCE4DD3C5": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "KavunImagesBucketABC7F95F"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Principal": {
+                "CanonicalUser": {
+                  "Fn::GetAtt": [
+                    "KavunCloudFrontOrigin1S3Origin0E1F277D",
+                    "S3CanonicalUserId"
+                  ]
+                }
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "KavunImagesBucketABC7F95F",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012"
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "logging.s3.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "KavunAccessLogsBucket90737732",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Type": "AWS::S3::BucketPolicy"
+    },
+    "KavunLambdaRole62AEA3C2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Role"
+    },
+    "KavunLambdaRoleDefaultPolicy7D45C1C1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "KavunWordsTableC0AA7B80",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "KavunImagesBucketABC7F95F",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "KavunAPISecrets6763772E"
+              }
+            },
+            {
+              "Action": [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            },
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": "arn:aws:states:us-east-1:123456789012:stateMachine:kavun-workflow"
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "KavunDeadLetterQueueE09F750F"
+              }
+            },
+            {
+              "Action": "*",
+              "Condition": {
+                "StringNotEquals": {
+                  "aws:RequestedRegion": [
+                    "us-east-1"
+                  ]
+                }
+              },
+              "Effect": "Deny",
+              "Resource": "*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "KavunLambdaRoleDefaultPolicy7D45C1C1",
+        "Roles": [
+          {
+            "Ref": "KavunLambdaRole62AEA3C2"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Policy"
+    },
+    "KavunPromptLambdaD850A442": {
+      "DependsOn": [
+        "KavunLambdaRoleDefaultPolicy7D45C1C1",
+        "KavunLambdaRole62AEA3C2"
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "a75e9077068ba9eac7fb3a17f5e59de8fd7f3cf2693fac420040ae00f85bd170.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "CLOUDFRONT_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "KavunCloudFront22FA320C",
+                      "DomainName"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "DLQ_TOPIC_ARN": {
+              "Ref": "KavunDeadLetterQueueE09F750F"
+            },
+            "SECRET_ARN": {
+              "Ref": "KavunAPISecrets6763772E"
+            },
+            "TABLE_NAME": {
+              "Ref": "KavunWordsTableC0AA7B80"
+            }
+          }
+        },
+        "FunctionName": "kavun-prompt-generator",
+        "Handler": "handler.handler",
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "KavunLambdaRole62AEA3C2",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.12",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Timeout": 300,
+        "TracingConfig": {
+          "Mode": "Active"
+        }
+      },
+      "Type": "AWS::Lambda::Function"
+    },
+    "KavunStatusLambdaEF5079AB": {
+      "DependsOn": [
+        "KavunLambdaRoleDefaultPolicy7D45C1C1",
+        "KavunLambdaRole62AEA3C2"
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "2705943de4520f3e9bc64fd438744655702564be949f65793f041ba3052e041e.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "DLQ_TOPIC_ARN": {
+              "Ref": "KavunDeadLetterQueueE09F750F"
+            },
+            "TABLE_NAME": {
+              "Ref": "KavunWordsTableC0AA7B80"
+            }
+          }
+        },
+        "FunctionName": "kavun-status-checker",
+        "Handler": "handler.handler",
+        "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "KavunLambdaRole62AEA3C2",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.12",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Timeout": 120,
+        "TracingConfig": {
+          "Mode": "Active"
+        }
+      },
+      "Type": "AWS::Lambda::Function"
+    },
+    "KavunWordsTableC0AA7B80": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "word",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "status",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "created_at",
+            "AttributeType": "S"
+          }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "StatusIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "status",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "created_at",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "word",
+            "KeyType": "HASH"
+          }
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "TableName": "kavun-words",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "KavunWorkflow0C85EDA9": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "KavunWorkflowRoleDefaultPolicy5D630D6E",
+        "KavunWorkflowRole92634CB9"
+      ],
+      "Properties": {
+        "DefinitionString": {
+          "Fn::Join": [
+            "",
+            [
+              "{\"StartAt\":\"GeneratePrompt\",\"States\":{\"GeneratePrompt\":{\"Next\":\"ParsePrompt\",\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"ResultPath\":\"$.prompt_result\",\"Resource\":\"arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::GetAtt": [
+                  "KavunPromptLambdaD850A442",
+                  "Arn"
+                ]
+              },
+              "\",\"Payload\":{\"word.$\":\"$.word\",\"language.$\":\"$.language\"}}},\"ParsePrompt\":{\"Type\":\"Pass\",\"Parameters\":{\"word.$\":\"$.word\",\"language.$\":\"$.language\",\"prompt.$\":\"$.prompt_result.Payload.body\"},\"Next\":\"CheckDuplicate\"},\"CheckDuplicate\":{\"Type\":\"Choice\",\"Choices\":[{\"Variable\":\"$.prompt\",\"StringMatches\":\"*already_exists*\",\"Next\":\"SkipImageGeneration\"}],\"Default\":\"GenerateImage\"},\"GenerateImage\":{\"End\":true,\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"ResultPath\":\"$.image_result\",\"Resource\":\"arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::GetAtt": [
+                  "KavunImageLambdaAA5FCFB6",
+                  "Arn"
+                ]
+              },
+              "\",\"Payload\":{\"word.$\":\"$.word\",\"prompt.$\":\"$.prompt\",\"language.$\":\"$.language\"}}},\"SkipImageGeneration\":{\"Type\":\"Pass\",\"Result\":{\"message\":\"Word already exists, skipping image generation\",\"word\":\"$.word\",\"status\":\"already_exists\"},\"End\":true}},\"TimeoutSeconds\":1800}"
+            ]
+          ]
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "KavunWorkflowRole92634CB9",
+            "Arn"
+          ]
+        },
+        "StateMachineName": "kavun-workflow",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "TracingConfiguration": {
+          "Enabled": true
+        }
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete"
+    },
+    "KavunWorkflowRole92634CB9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Role"
+    },
+    "KavunWorkflowRoleDefaultPolicy5D630D6E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "KavunPromptLambdaD850A442",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "KavunPromptLambdaD850A442",
+                          "Arn"
+                        ]
+                      },
+                      ":*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "KavunImageLambdaAA5FCFB6",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "KavunImageLambdaAA5FCFB6",
+                          "Arn"
+                        ]
+                      },
+                      ":*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "KavunWorkflowRoleDefaultPolicy5D630D6E",
+        "Roles": [
+          {
+            "Ref": "KavunWorkflowRole92634CB9"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Policy"
+    },
+    "PromptLambdaDuration193288F2": {
+      "Properties": {
+        "AlarmDescription": "Prompt Lambda duration too high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "KavunPromptLambdaD850A442"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Duration",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Average",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 240000
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "PromptLambdaErrorRate5C790BC9": {
+      "Properties": {
+        "AlarmDescription": "Prompt Lambda error rate too high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "KavunPromptLambdaD850A442"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 5
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    },
+    "PromptLambdaLogGroupDC877559": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "KavunPromptLambdaD850A442"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "StatusLambdaLogGroup60B7028F": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "KavunStatusLambdaEF5079AB"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ]
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "StepFunctionsFailedExecutions32BE6244": {
+      "Properties": {
+        "AlarmDescription": "Step Functions failed executions too high",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "StateMachineArn",
+            "Value": {
+              "Ref": "KavunWorkflow0C85EDA9"
+            }
+          }
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "ExecutionsFailed",
+        "Namespace": "AWS/States",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "Backup",
+            "Value": "Required"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "AI/ML"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Production"
+          },
+          {
+            "Key": "Monitoring",
+            "Value": "Enabled"
+          },
+          {
+            "Key": "Owner",
+            "Value": "Kavun Team"
+          },
+          {
+            "Key": "Project",
+            "Value": "Kavun"
+          }
+        ],
+        "Threshold": 5
+      },
+      "Type": "AWS::CloudWatch::Alarm"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}

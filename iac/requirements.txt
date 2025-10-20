@@ -1,0 +1,27 @@
+# Kavun Infrastructure Requirements
+# CDK and infrastructure-specific dependencies
+
+# AWS CDK Core
+aws-cdk-lib>=2.100.0
+constructs>=10.0.0
+
+# Note: aws-cdk CLI is installed globally via npm
+# Additional CDK constructs are part of aws-cdk-lib
+
+# Infrastructure testing
+pytest>=7.0.0
+pytest-mock>=3.10.0
+pytest-cov>=4.0.0
+
+# Code quality for infrastructure
+black>=22.0.0
+flake8>=5.0.0
+mypy>=1.0.0
+isort>=5.0.0
+
+# Type checking
+types-boto3>=1.26.0
+
+# Documentation
+mkdocs>=1.4.0
+mkdocs-material>=9.0.0
